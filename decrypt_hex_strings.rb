@@ -9,21 +9,20 @@ CIPHER4 = '32510ba9aab2a8a4fd06414fb517b5605cc0aa0dc91a8908c2064ba8ad5ea06a02905
 CIPHERS = [CIPHER1, CIPHER2, CIPHER3, CIPHER4]
 
 class DecryptionMachine
-  attr_accessor :ciphers, :decrypter, :messages, :key
+  attr_accessor :ciphers, :decrypter, :messages, :key, :max_cipher_length
 
   def initialize(hex_ciphers)
     @decrypter = ManyTimePadDecrypter.new
     @ciphers = hex_ciphers.map { |cipher| decrypter.ascii_string_for(cipher)}
     @messages = ciphers.map { |cipher| '?' * cipher.length }
-
-
-    @key = '?' * find_max_length(ciphers)
+    @max_cipher_length = find_min_length(ciphers)
+    @key = "?" * max_cipher_length
   end
 
-  def find_max_length(arrays)
-    max_length = 0
+  def find_min_length(arrays)
+    max_length = 10000000
     arrays.each do |array|
-      max_length = array.length if array.length > max_length
+      max_length = array.length if array.length < max_length
     end
     max_length
   end
@@ -38,6 +37,7 @@ class DecryptionMachine
       possible_space_positions = []
       index = 0
       message_xor.each do |xor_byte|
+        break if index >= max_cipher_length
         possible_space_positions << index if (65 <= xor_byte && xor_byte <= 122)
         index += 1
       end
