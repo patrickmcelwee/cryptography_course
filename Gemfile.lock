@@ -1,0 +1,15 @@
+GIT
+  remote: https://github.com/atomicobject/hex_string
+  revision: 276be456c7edaa15ccf27953bf7b62eeef938e97
+  specs:
+    hex_string (1.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hex_string!
