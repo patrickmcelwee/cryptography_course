@@ -59,7 +59,6 @@ class DecryptionMachine
       end
 
       possible_space_positions.each do |space_index|
-        break if clones1[space_index] != '?' || clones2[space_index] != '?'
         puts "There is likely a space at #{space_index}"
 
         puts "If it is in the first message, then:"
