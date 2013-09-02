@@ -1,6 +1,11 @@
-require_relative 'key'
+require_relative '../key'
+require 'xorable_class_spec'
 
 describe Key do
+  subject {Key.new('abc')}
+
+  it_behaves_like "an_xorable_class"
+
   context 'self#for_ciphers' do
     it "returns ?'s for the max length of the ciphers" do
       comm1 = '123'

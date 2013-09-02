@@ -1,4 +1,4 @@
-require_relative 'message'
+require_relative '../message'
 
 describe Message do
   context 'self.from_cipher' do

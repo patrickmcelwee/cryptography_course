@@ -1,4 +1,8 @@
+require_relative 'lib/xorable'
+
 class Key
+  include Xorable
+
   attr_reader :string
 
   def initialize(string)
@@ -11,6 +15,10 @@ class Key
 
   def self.unknown_for_ciphers(ciphers)
     new ('?' * max_length_of(ciphers))
+  end
+
+  def bytes
+    string.bytes
   end
 
   private

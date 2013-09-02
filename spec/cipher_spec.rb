@@ -1,27 +1,15 @@
-require_relative 'cipher'
+require_relative '../cipher'
+require 'xorable_class_spec'
 
 describe Cipher do
   subject {Cipher.new('abc')}
+
+  it_behaves_like "an_xorable_class"
 
   context 'self.from_hex_string' do
     it "returns an object encoding an ascii equivalent" do
       expect(described_class.from_hex_string('315c').to_s).to eq('1\\')
       expect(described_class.from_hex_string('5c314e').to_s).to eq('\\1N')
-    end
-  end
-
-  context '^' do
-    it "xors its own ascii bytes with the target's ascii bytes" do
-      expect(subject ^ 'Y$+').to eq('8FH')
-      expect(subject ^ 'aBz').to eq("\x00 \x19")
-    end
-
-    it "works when it is longer than target" do
-      expect(subject ^ '12').to eq("PP")
-    end
-
-    it "works when target is longer" do
-      expect(subject ^ '2345678').to eq("SQW")
     end
   end
 

@@ -1,6 +1,7 @@
 require 'term/ansicolor'
 require_relative 'cipher'
 require_relative 'message'
+require_relative 'key'
 require_relative 'ciphers'
 
 class DecryptionMachine
@@ -78,9 +79,8 @@ class DecryptionMachine
   end
 end
 
-#class ManyTimePadDecrypter
-  #def encrypt(key, message)
-    #cipher = xor(key, message)
-    #cipher.unpack('H*').first
-  #end
-#end
+class PadEncrypter
+  def encrypt(key, message)
+    cipher = Cipher.new ((key ^ message).unpack('H*').first)
+  end
+end
