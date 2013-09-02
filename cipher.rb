@@ -1,7 +1,9 @@
 require_relative 'lib/xorable'
+require_relative 'lib/string_like'
 
 class Cipher
   include Xorable
+  include StringLike
 
   def self.from_hex_string(hex_string)
     ascii_string = [hex_string].pack('H*')
@@ -10,18 +12,6 @@ class Cipher
 
   def initialize(string)
     @string = string
-  end
-
-  def to_s
-    string
-  end
-
-  def bytes
-    string.bytes
-  end
-
-  def length
-    string.length
   end
 
   private

@@ -1,7 +1,9 @@
 require_relative 'lib/xorable'
+require_relative 'lib/string_like'
 
 class Key
   include Xorable
+  include StringLike
 
   attr_reader :string
 
@@ -9,16 +11,8 @@ class Key
     @string = string
   end
 
-  def to_s
-    string
-  end
-
   def self.unknown_for_ciphers(ciphers)
     new ('?' * max_length_of(ciphers))
-  end
-
-  def bytes
-    string.bytes
   end
 
   private

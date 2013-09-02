@@ -1,4 +1,8 @@
+require_relative 'lib/string_like'
+
 class Message
+  include StringLike
+
   attr_reader :presently_known
 
   def self.from_cipher(cipher)
@@ -10,7 +14,7 @@ class Message
     @presently_known = presently_known
   end
 
-  def to_s
+  def string
     presently_known
   end
 end
