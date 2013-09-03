@@ -14,4 +14,12 @@ module StringLike
   def length
     string.length
   end
+
+  def [](index)
+    string[index]
+  end
+
+  def []=(index, value)
+    string[index] = value
+  end
 end

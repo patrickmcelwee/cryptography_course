@@ -4,6 +4,10 @@ require_relative 'message'
 require_relative 'key'
 require_relative 'ciphers'
 
+class String
+  include Xorable
+end
+
 class DecryptionMachine
   attr_accessor :ciphers, :messages, :key
 
@@ -11,6 +15,62 @@ class DecryptionMachine
     @ciphers = hex_ciphers.map { |cipher| Cipher.from_hex_string(cipher)}
     @messages = ciphers.map { |cipher| Message.from_cipher(cipher) }
     @key = Key.unknown_for_ciphers(ciphers)
+  end
+
+  def auto_decrypt
+    ciphers.each_with_index do |cipher, cipher_index|
+      break if cipher.equal?(ciphers.last)
+      #TODO: compare to EACH other cipher
+      next_cipher = ciphers[cipher_index + 1]
+      message_xor = cipher ^ next_cipher
+      message_xor.bytes.each_with_index do |byte, char_index|
+        if probably_xored_with_space?(byte)
+          if key = likely_key(char_index, cipher, next_cipher)
+            messages.each_with_index do |m, i|
+              m[char_index] = ciphers[i][char_index] ^ key
+            end
+          end
+        end
+      end
+    end
+    messages.each {|m| puts "message: #{m}"}
+    messages.map(&:to_s)
+  end
+
+  def likely_key(index, cipher1, cipher2)
+    key1 = key_for(cipher1, index)
+    key2 = key_for(cipher2, index)
+    better_key(key1, key2, index)
+  end
+
+  def better_key(key1, key2, index)
+    chars1 = decrypted_message_chars_for(key1, index)
+    chars2 = decrypted_message_chars_for(key2, index)
+    score1 = score_chars(chars1)
+    score2 = score_chars(chars2)
+    return nil if score1 == score2
+    score1 > score2 ? key1 : key2
+  end
+
+  def score_chars(chars)
+    score = 0
+    chars.each do |char|
+      score += 1 if char.match /[a-zA-Z]/
+    end
+    score
+  end
+
+  def decrypted_message_chars_for(key, index)
+    ciphers.map{|cipher| cipher[index] ^ key}
+  end
+
+  def key_for(cipher, index)
+    cipher[index] ^ " "
+  end
+
+  private
+  def probably_xored_with_space?(byte)
+    65 <= byte && byte <= 122
   end
 
   def run
@@ -81,6 +141,6 @@ end
 
 class PadEncrypter
   def encrypt(key, message)
-    cipher = Cipher.new ((key ^ message).unpack('H*').first)
+    cipher = (key ^ message).unpack('H*').first
   end
 end
