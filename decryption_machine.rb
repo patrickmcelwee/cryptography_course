@@ -27,7 +27,7 @@ class DecryptionMachine
         if probably_xored_with_space?(byte)
           if key = likely_key(char_index, cipher, next_cipher)
             messages.each_with_index do |m, i|
-              m[char_index] = ciphers[i][char_index] ^ key
+              m[char_index] = ciphers[i][char_index] ^ key if ciphers[i][char_index]
             end
           end
         end
@@ -55,13 +55,15 @@ class DecryptionMachine
   def score_chars(chars)
     score = 0
     chars.each do |char|
+      puts "char in score_chars: #{char}"
+      next unless char
       score += 1 if char.match /[a-zA-Z]/
     end
     score
   end
 
   def decrypted_message_chars_for(key, index)
-    ciphers.map{|cipher| cipher[index] ^ key}
+    ciphers.map{|cipher| next unless cipher[index]; cipher[index] ^ key}
   end
 
   def key_for(cipher, index)
