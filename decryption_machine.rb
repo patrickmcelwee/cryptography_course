@@ -49,16 +49,24 @@ class DecryptionMachine
     score1 = score_chars(chars1)
     score2 = score_chars(chars2)
     return nil if score1 == score2
+    return nil if score1 - score2 < 5 && score2 - score1 < 5
     score1 > score2 ? key1 : key2
   end
 
   def score_chars(chars)
     score = 0
     chars.each do |char|
-      puts "char in score_chars: #{char}"
       next unless char
-      score += 1 if char.match /[a-zA-Z]/
+      score += 2 if char.match /[a-z]/
+      score += 2 if char.match /\s/
+      score += 1 if char.match /[A-Z]/
+      score += 1 if char.match /e/
+      score += 1 if char.match /[etaoinshr]/
+      score += 1 if char.match /[0-9]/
+      score += 1 if char.match /[.:!?,'"]/
+      score -= 1 if char.match /[jxqz]/
     end
+    p score
     score
   end
 
