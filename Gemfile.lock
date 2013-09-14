@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    fast-aes (0.1.1)
     term-ansicolor (1.2.2)
       tins (~> 0.8)
     tins (0.9.0)
@@ -9,4 +10,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  fast-aes
   term-ansicolor
