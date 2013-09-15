@@ -29,8 +29,8 @@ class AesCbc
 
   def decrypted_string
     iv = initial_string[0..15]
-    block1 = initial_string[16..47]
-    block2 = initial_string[48..63]
+    block1 = initial_string[16..31]
+    block2 = initial_string[32..47]
     decryption = ''
 
     message_block1 = decrypt_block(block1) ^ iv
@@ -38,12 +38,14 @@ class AesCbc
 
     message_block2 = decrypt_block(block2) ^ block1
     decryption << message_block2
+    unpad decryption
 
     decryption
   end
 
   def encrypted_string
     blocks = initial_string.chars.each_slice(16).map(&:join)
+    pad blocks
     iv = SecureRandom.random_bytes(16)
     encryption = ''
     encryption << iv
@@ -61,7 +63,8 @@ class AesCbc
     decrypter = OpenSSL::Cipher::AES.new(128, 'ECB')
     decrypter.decrypt
     decrypter.key = key
-    result = decrypter.update(block) + decrypter.final
+    decrypter.padding = 0
+    result = decrypter.update(block)
     result
   end
 
@@ -69,17 +72,28 @@ class AesCbc
     encrypter = OpenSSL::Cipher::AES.new(128, 'ECB')
     encrypter.encrypt
     encrypter.key = key
-    result = encrypter.update(block) + encrypter.final
+    result = encrypter.update(block)
     result
   end
 
-  # TODO: unit test?
   def pad(blocks)
+    padded = false
     blocks.each do |block|
       if block.size < 16
         pad = 16 - block.size
-        pad.times { block << pad }
+        pad.times { block << pad.to_s }
+        padded = true
       end
+      blocks << ['0'] * 16 unless padded
+    end
+  end
+
+  def unpad(decrypted_message)
+    if decrypted_message[-1] == '0'
+      decrypted_message.slice!(-16..-1)
+    else
+      padding = decrypted_message[-1].to_i
+      decrypted_message.slice!(-padding..-1)
     end
   end
 
