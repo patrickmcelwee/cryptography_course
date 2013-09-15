@@ -11,7 +11,7 @@ class AesCbc
   def initialize(initial_string, input_encoding: :ascii,
                  output_encoding: :ascii,
                  key:  ->{raise "needs a key"}.call)
-    @initial_string = normalize_input initial_string, input_encoding
+    @initial_string = (normalize_input initial_string, input_encoding).dup
     @output_encoding = output_encoding
     @key = normalize_input key, :hex
   end
@@ -28,18 +28,17 @@ class AesCbc
   attr_reader :initial_string, :output_encoding, :key
 
   def decrypted_string
-    iv = initial_string[0..15]
-    block1 = initial_string[16..31]
-    block2 = initial_string[32..47]
+    iv = initial_string.slice!(0..15)
     decryption = ''
 
-    message_block1 = decrypt_block(block1) ^ iv
-    decryption << message_block1
+    blocks = initial_string.chars.each_slice(16).map(&:join)
 
-    message_block2 = decrypt_block(block2) ^ block1
-    decryption << message_block2
+    blocks.inject(iv) do |xorable, block|
+      message_block = decrypt_block(block) ^ xorable
+      decryption << message_block
+      block
+    end
     unpad decryption
-
     decryption
   end
 
@@ -47,15 +46,13 @@ class AesCbc
     blocks = initial_string.chars.each_slice(16).map(&:join)
     pad blocks
     iv = SecureRandom.random_bytes(16)
-    encryption = ''
-    encryption << iv
+    encryption = iv
 
-    cipher_block = encrypt_block(iv ^ blocks[0])
-    encryption << cipher_block
-
-    cipher_block2 = encrypt_block(cipher_block ^ blocks[1])
-    encryption << cipher_block2
-    
+    blocks.inject(iv) do |xorable, block|
+      cipher_block = encrypt_block(xorable ^ block)
+      encryption << cipher_block
+      cipher_block
+    end
     encryption
   end
 
@@ -81,20 +78,28 @@ class AesCbc
     blocks.each do |block|
       if block.size < 16
         pad = 16 - block.size
-        pad.times { block << pad.to_s }
+        if pad < 10
+          pad.times { block << pad.to_s }
+        else
+          (pad-1).times { block << (pad-10).to_s }
+          block << "|"
+        end
         padded = true
       end
-      blocks << ['0'] * 16 unless padded
     end
+    blocks << "0" * 16 unless padded
   end
 
   def unpad(decrypted_message)
-    if decrypted_message[-1] == '0'
-      decrypted_message.slice!(-16..-1)
-    else
-      padding = decrypted_message[-1].to_i
-      decrypted_message.slice!(-padding..-1)
-    end
+    padding = case decrypted_message[-1]
+              when '0'
+                16
+              when '|'
+                decrypted_message[-2].to_i + 10
+              else
+                decrypted_message[-1].to_i
+              end
+    decrypted_message.slice!(-padding..-1)
   end
 
   def normalize_input(input, input_encoding)

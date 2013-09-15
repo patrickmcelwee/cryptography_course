@@ -18,8 +18,18 @@ describe AesCbc do
     expect(decrypter.decrypt).to eq(message)
   end
 
-  xit "works for a short message" do
+  it "works for a short message" do
     message = "This is me."
+    key = SecureRandom.random_bytes(16).unpack('H*').first
+    encrypter = AesCbc.new(message, key: key)
+    cipher = encrypter.encrypt
+
+    decrypter = AesCbc.new(cipher, key: key)
+    expect(decrypter.decrypt).to eq(message)
+  end
+
+  it "works for a long message" do
+    message = "Something ridiculously long so that I can test out the functioning of this crude, but passable reconstruction of a CBC for the purposes of learning cryptography. Cryptography is like the rifle - a military technology available to the masses and thus facilitating a certain level of democracy."
     key = SecureRandom.random_bytes(16).unpack('H*').first
     encrypter = AesCbc.new(message, key: key)
     cipher = encrypter.encrypt
