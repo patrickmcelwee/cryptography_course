@@ -9,9 +9,9 @@ class PaddingOracleHacker
     @blocks ||= ciphertext.scan(/.{32}/)
   end
 
-  def guess(pad: '1', byte_guess: 0)
+  def guess(pad: 1, byte_guess: 0)
     previous_block_hex_byte = blocks[-2][-2..-1]
-    new_last_byte = (pad.bytes.first ^ byte_guess ^ previous_block_hex_byte.hex)
+    new_last_byte = (pad ^ byte_guess ^ previous_block_hex_byte.hex)
     new_last_hex_byte = [new_last_byte].pack('C*').unpack('H*').first
     blocks[-2][-2..-1] = new_last_hex_byte
     blocks.join

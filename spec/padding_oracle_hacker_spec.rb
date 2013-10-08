@@ -13,7 +13,7 @@ describe PaddingOracleHacker do
   end
 
   it "can guess the decryption for the last byte" do
-    expect(longer_subject.guess(pad: '1', byte_guess: 0)).to eq('00112233445566778899aabbccddeece' + aes_block)
+    expect(longer_subject.guess(pad: 1, byte_guess: 0)).to eq('00112233445566778899aabbccddeefe' + aes_block)
   end
 end
 
