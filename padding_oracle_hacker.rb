@@ -5,6 +5,7 @@ class PaddingOracleHacker
 
   def initialize(query_url, ciphertext)
     @ciphertext = ciphertext
+    @query_url = query_url
     @tester = PaddingOracleTester.new(query_url)
     @known = []
   end
@@ -35,8 +36,12 @@ class PaddingOracleHacker
   end
 
   def decrypt
-    (1..blocks.size+1).each do |block_index|
-      decrypt_block(-block_index)
+    decrypt_block(-1)
+    (1..blocks.size-2).each do |n|
+      delegated_hacker = self.class.new(query_url, ciphertext[0..-((32*n) + 1)])
+      delegated_hacker.decrypt_block(-1)
+      known.unshift delegated_hacker.known
+      known.flatten!
     end
     known.pack('C*')
   end
@@ -74,7 +79,7 @@ class PaddingOracleHacker
   end
 
   private
-  attr_reader :ciphertext, :tester
+  attr_reader :ciphertext, :tester, :query_url
 
   def clone_blocks(blocks_to_clone=blocks)
     blocks_to_clone.map { |block| block.dup }

@@ -79,7 +79,7 @@ describe PaddingOracleHacker do
     it "decrypts the whole message" do
       VCR.use_cassette('decrypt_all', record: :new_episodes) do
         expect(real_example.decrypt).to eq(
-          'The Magic Words are Squeamish Ossifrage')
+          "The Magic Words are Squeamish Ossifrage\t\t\t\t\t\t\t\t\t")
       end
     end
   end
