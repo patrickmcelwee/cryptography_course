@@ -47,8 +47,40 @@ describe PaddingOracleHacker do
 
   context '#decrypt_block' do
     it "decrypts the indicated block, starting with 1" do
-      
+      VCR.use_cassette('decrypt_one_block') do
+        real_example.decrypt_block(-1)
+      end
+      expect(real_example.known).to eq(
+        [115, 105, 102, 114, 97, 103, 101, 9, 9, 9, 9, 9, 9, 9, 9, 9])
+    end
 
+    it "decrypts shortened real example first block too" do
+      shortened_hacker = described_class.new('http://crypto-class.appspot.com/po?er=',
+                           valid_cipher[0..-33])
+      VCR.use_cassette('one_block_shorter') do
+        shortened_hacker.decrypt_block(-1)
+      end
+      expect(shortened_hacker.known).to eq(
+        [97, 114, 101, 32, 83, 113, 117, 101, 97, 109, 105, 115, 104, 32, 79, 115])
+    end
+
+    it "decrypts greatly shortened real example first block too" do
+      shortened_hacker = described_class.new('http://crypto-class.appspot.com/po?er=',
+                           valid_cipher[0..-65])
+      VCR.use_cassette('two_blocks_shorter') do
+        shortened_hacker.decrypt_block(-1)
+      end
+      expect(shortened_hacker.known).to eq(
+        [84, 104, 101, 32, 77, 97, 103, 105, 99, 32, 87, 111, 114, 100, 115, 32])
+    end
+  end
+
+  context '#decrypt' do
+    it "decrypts the whole message" do
+      VCR.use_cassette('decrypt_all', record: :new_episodes) do
+        expect(real_example.decrypt).to eq(
+          'The Magic Words are Squeamish Ossifrage')
+      end
     end
   end
 end

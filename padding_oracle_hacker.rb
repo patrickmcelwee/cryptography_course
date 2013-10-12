@@ -27,7 +27,7 @@ class PaddingOracleHacker
 
   def discover_pad
     (1..16).each do |guess|
-      if has_a_valid_pad? generate_guess(pad: 1, byte_guess: guess)
+      if has_a_valid_pad? generate_guess(-1, pad: 1, byte_guess: guess)
         guess.times { known.unshift guess }
         break
       end
@@ -35,27 +35,35 @@ class PaddingOracleHacker
   end
 
   def decrypt
-    discover_pad
-    until plain_text_deciphered?
-      pad = known.size + 1
+    (1..blocks.size+1).each do |block_index|
+      decrypt_block(-block_index)
+    end
+    known.pack('C*')
+  end
+
+  def decrypt_block(block_number)
+    discover_pad if block_number == -1
+    initial_pad = (known.size + 1) - (16 * -(block_number + 1))
+    (initial_pad..16).each do |pad|
+      puts "trying pad: #{pad}"
       (32..175).each do |guess|
-        test_cipher = generate_guess(pad: pad, byte_guess: guess)
+        raise "no valid pad found" if guess == 256
+        test_cipher = generate_guess(block_number, pad: pad, byte_guess: guess)
         if has_a_valid_pad?(test_cipher)
           known.unshift guess
           break
         end
       end
-      puts "\nknown: " + known.pack('C*') + "\n"
+      puts "known: #{known}"
+      puts "known_for_human: #{known.pack('C*')}"
     end
   end
 
-  def generate_guess(pad: 1, byte_guess: 0)
-    cloned_blocks = []
-    blocks.each do |block|
-      cloned_blocks << block.dup
-    end
+  def generate_guess(block_number=-1, pad: 1, byte_guess: 0)
+    cloned_blocks = clone_blocks(blocks[0..block_number])
+
     (1..pad).each do |n|
-      guess = (n == pad) ? byte_guess : known[-(n)]
+      guess = (n == pad) ? byte_guess : known[-n + (16 * (block_number+1))] 
       index = -(2 * n)
       previous_block_hex_byte = blocks[-2][index..index+1]
       new_last_byte = (pad ^ guess ^ previous_block_hex_byte.hex)
@@ -67,6 +75,10 @@ class PaddingOracleHacker
 
   private
   attr_reader :ciphertext, :tester
+
+  def clone_blocks(blocks_to_clone=blocks)
+    blocks_to_clone.map { |block| block.dup }
+  end
 
   def plain_text_deciphered?
     false
