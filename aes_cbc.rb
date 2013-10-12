@@ -140,7 +140,7 @@ class AesCbc < AesCipher
       decryption << message_block
       block
     end
-    unpad decryption
+    #unpad decryption
     decryption
   end
 
